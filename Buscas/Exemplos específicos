@@ -1,0 +1,68 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
+// O(log n). Vetor ordenado. Devolve n se todo elemento for menor que x.
+// Tipo um lower_bound
+int primeiro_maior_igual(vector<int>& a, int x) {
+    int l = 0, r = (int)a.size();
+    while (l < r) {
+        int m = l + (r - l) / 2;
+        if (a[m] < x) l = m + 1;
+        else r = m;
+    }
+    return l;
+}
+
+// O(log(limite + 1)) testes. Busca em [0, limite).
+// ok deve passar de falso para verdadeiro. Devolve limite se não achar.
+//Outro lower bound, só que dessa vez um condição específica (função ok);
+ll primeira_resposta(ll limite) {
+    ll l = 0, r = limite;
+    while (l < r) {
+        ll m = l + (r - l) / 2;
+        if (ok(m)) r = m;
+        else l = m + 1;
+    }
+    return l;
+}
+
+// O(n). Cada índice pode ser usado uma vez. Vetor ordenado.
+// two pointers para soma
+bool tem_soma(vector<int>& a, ll alvo) {
+    int l = 0, r = (int)a.size() - 1;
+    while (l < r) {
+        ll soma = (ll)a[l] + a[r];
+        if (soma == alvo) return true;
+        if (soma < alvo) l++;
+        else r--;
+    }
+    return false;
+}
+
+// O(n log n). Máximo de intervalos [l, r) simultâneos; requer l < r.
+//usa sweep line para ver qual o maior número de ativos simultâneos
+int max_sobreposicao(vector<pair<int, int>>& intervalos) {
+    vector<pair<int, int>> eventos;
+    for (auto [l, r] : intervalos) {
+        eventos.push_back({l, 1});
+        eventos.push_back({r, -1});
+    }
+    sort(eventos.begin(), eventos.end()); // Em empate, saídas vêm antes.
+    int ativos = 0, melhor = 0;
+    for (auto [posicao, delta] : eventos) {
+        ativos += delta;
+        melhor = max(melhor, ativos);
+    }
+    return melhor;
+}
+
+// O(2^n). Exemplo de backtracking: contar subconjuntos de soma alvo.
+// Use i = 0 na primeira chamada. Elementos e alvo devem ser não negativos.
+//maneiras de somar alvo com os caras do vetor
+ll contar_subconjuntos(vector<int>& a, int i, ll alvo) {
+    if (alvo < 0) return 0;
+    if (i == (int)a.size()) return alvo == 0;
+    return contar_subconjuntos(a, i + 1, alvo)
+         + contar_subconjuntos(a, i + 1, alvo - a[i]);
+}
