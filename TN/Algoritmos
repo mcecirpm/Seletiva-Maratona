@@ -1,0 +1,55 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
+// O(log expoente). Expoente >= 0 e 1 <= mod <= INT_MAX.
+ll potencia_mod(ll base, ll expoente, int mod) {
+    base %= mod;
+    if (base < 0) base += mod;
+    ll resposta = 1 % mod;
+    while (expoente > 0) {
+        if (expoente & 1) resposta = resposta * base % mod;
+        base = base * base % mod;
+        expoente >>= 1;
+    }
+    return resposta;
+}
+
+// O(n log log n). menor[x] é o menor fator primo de x para 2 <= x <= n.
+vector<int> crivo(int n) {
+    vector<int> menor(n + 1, 0);
+    for (int p = 2; p <= n; p++) {
+        if (menor[p] != 0) continue;
+        menor[p] = p;
+        for (ll j = 1LL * p * p; j <= n; j += p) {
+            if (menor[j] == 0) menor[j] = p;
+        }
+    }
+    return menor;
+}
+
+// O(log x) após o crivo. Requer 1 <= x < menor.size().
+vector<pair<int, int>> fatorar(int x, vector<int>& menor) {
+    vector<pair<int, int>> fatores;
+    while (x > 1) {
+        int p = menor[x], e = 0;
+        while (x % p == 0) {
+            x /= p;
+            e++;
+        }
+        fatores.push_back({p, e});
+    }
+    return fatores;
+}
+
+// O(sqrt(n)). Devolve divisores positivos em ordem crescente. Requer n > 0.
+inline vector<ll> divisores(ll n) {
+    vector<ll> pequenos, grandes;
+    for (ll d = 1; d <= n / d; d++) {
+        if (n % d != 0) continue;
+        pequenos.push_back(d);
+        if (d != n / d) grandes.push_back(n / d);
+    }
+    pequenos.insert(pequenos.end(), grandes.rbegin(), grandes.rend());
+    return pequenos;
+}
