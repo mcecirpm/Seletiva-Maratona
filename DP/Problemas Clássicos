@@ -1,0 +1,62 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
+// O(n). Maior soma de um subvetor não vazio. Requer a não vazio.
+//interativo
+ll kadane(vector<int>& a) {
+    ll atual = a[0], melhor = atual;
+    for (int i = 1; i < (int)a.size(); i++) {
+        atual = max((ll)a[i], atual + a[i]);
+        melhor = max(melhor, atual);
+    }
+    return melhor;
+}
+
+// O(n * cap) tempo, O(cap) memória. Pesos positivos. Cada item entra até uma vez.
+ll mochila(vector<int>& peso, vector<int>& valor, int cap) {
+    vector<ll> dp(cap + 1, 0); // Melhor valor com capacidade de até c.
+    for (int i = 0; i < (int)peso.size(); i++) {
+        for (int c = cap; c >= peso[i]; c--) {
+            dp[c] = max(dp[c], dp[c - peso[i]] + valor[i]);
+        }
+    }
+    return dp[cap];
+}
+
+// O(n * alvo). Valores não negativos. Cada posição entra até uma vez.
+bool subset_sum(vector<int>& a, int alvo) {
+    vector<bool> dp(alvo + 1, false);
+    dp[0] = true;
+    for (int x : a) {
+        for (int s = alvo; s >= x; s--) {
+            if (dp[s - x]) dp[s] = true;
+        }
+    }
+    return dp[alvo];
+}
+
+// O(nm) tempo, O(m) memória. Tamanho da maior subsequência comum.
+int lcs(string& a, string& b) {
+    int m = (int)b.size();
+    vector<int> anterior(m + 1, 0), atual(m + 1, 0);
+    for (char letra : a) {
+        for (int j = 1; j <= m; j++) {
+            if (letra == b[j - 1]) atual[j] = anterior[j - 1] + 1;
+            else atual[j] = max(anterior[j], atual[j - 1]);
+        }
+        swap(atual, anterior);
+    }
+    return anterior[m];
+}
+
+// O(n log n). Tamanho da maior subsequência estritamente crescente.
+int lis(vector<int>& a) {
+    vector<int> fim;
+    for (int x : a) {
+        auto it = lower_bound(fim.begin(), fim.end(), x);
+        if (it == fim.end()) fim.push_back(x);
+        else *it = x;
+    }
+    return (int)fim.size();
+}
