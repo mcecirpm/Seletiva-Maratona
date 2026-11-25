@@ -1,0 +1,107 @@
+#pragma once
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
+const ll INF_DIST = 1000000000000000007;
+
+struct Aresta {
+    int u, v;
+    ll peso;
+};
+
+// O(V + E log(E + 1)). Pesos em [0, INF_DIST).
+// Cada par contém (destino, peso). Caminhos relevantes devem custar < INF_DIST.
+vector<ll> dijkstra(const vector<vector<pair<int, ll>>>& adj, int s) {
+    vector<ll> dist(adj.size(), INF_DIST);
+    priority_queue<pair<ll, int>, vector<pair<ll, int>>, greater<pair<ll, int>>> fila;
+    dist[s] = 0;
+    fila.push({0, s});
+    while (!fila.empty()) {
+        auto [d, u] = fila.top();
+        fila.pop();
+        if (d != dist[u]) continue;
+        for (auto [v, peso] : adj[u]) {
+            if (d + peso >= dist[v]) continue;
+            dist[v] = d + peso;
+            fila.push({dist[v], v});
+        }
+    }
+    return dist;
+}
+
+// O(V(V + E)). Retorna false se s alcança um ciclo negativo.
+// Requer V vezes o maior peso absoluto < INF_DIST.
+// Usa a camada anterior em cada rodada, limitando o caminho a k arestas.
+bool bellman_ford(int n, vector<Aresta>& arestas, int s, vector<ll>& dist) {
+    dist.assign(n, INF_DIST);
+    dist[s] = 0;
+    for (int k = 1; k <= n; k++) {
+        vector<ll> nova = dist;
+        bool mudou = false;
+        for (auto [u, v, peso] : arestas) {
+            if (dist[u] == INF_DIST || dist[u] + peso >= nova[v]) continue;
+            nova[v] = dist[u] + peso;
+            mudou = true;
+        }
+        if (!mudou) return true;
+        dist.swap(nova);
+    }
+    return false;
+}
+
+// O(V^3). Menores caminhos entre todos os pares, sem ciclos negativos.
+// Use INF_DIST para ausência de aresta, 0 na diagonal e mínimo entre paralelas.
+// Requer V vezes o maior peso absoluto < INF_DIST.
+inline void floyd_warshall(vector<vector<ll>>& dist) {
+    int n = (int)dist.size();
+    for (int k = 0; k < n; k++) {
+        for (int u = 0; u < n; u++) {
+            if (dist[u][k] == INF_DIST) continue;
+            for (int v = 0; v < n; v++) {
+                if (dist[k][v] == INF_DIST) continue;
+                dist[u][v] = min(dist[u][v], dist[u][k] + dist[k][v]);
+            }
+        }
+    }
+}
+
+struct DSU {
+    vector<int> pai, tam;
+    int grupos;
+
+    DSU(int n) : pai(n), tam(n, 1), grupos(n) {
+        iota(pai.begin(), pai.end(), 0); //preenche pai com caras consecultivos
+    }
+
+    int find(int u) {
+        if (pai[u] == u) return u;
+        return pai[u] = find(pai[u]);
+    }
+
+    bool join(int u, int v) {
+        u = find(u);
+        v = find(v);
+        if (u == v) return false;
+        if (tam[u] < tam[v]) swap(u, v);
+        pai[v] = u;
+        tam[u] += tam[v];
+        grupos--;
+        return true;
+    }
+};
+
+// O(V + E log(E + 1)). Grafo não dirigido com n >= 1.
+// Retorna -INF_DIST se o grafo for desconexo. A soma deve caber em ll.
+ll kruskal(int n, vector<Aresta> arestas) {
+    sort(arestas.begin(), arestas.end(), [](const Aresta& a, const Aresta& b) {
+        return a.peso < b.peso;
+    });
+    DSU dsu(n);
+    ll custo = 0;
+    for (auto [u, v, peso] : arestas) {
+        if (dsu.join(u, v)) custo += peso;
+    }
+    if (dsu.grupos != 1) return -INF_DIST;
+    return custo;
+}
