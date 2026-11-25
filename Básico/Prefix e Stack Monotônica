@@ -1,0 +1,23 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+
+// O(n). Soma de [l, r) = pref[r] - pref[l].
+vector<ll> prefixos(const vector<int>& a) {
+    vector<ll> pref(a.size() + 1, 0);
+    for (int i = 0; i < (int)a.size(); i++) pref[i + 1] = pref[i] + a[i];
+    return pref;
+}
+
+// O(n). Para cada i, posição anterior mais próxima com a[j] < a[i].
+// Usa -1 quando ela não existe.
+vector<int> menor_a_esquerda(const vector<int>& a) {
+    vector<int> anterior(a.size(), -1);
+    stack<int> pilha;
+    for (int i = 0; i < (int)a.size(); i++) {
+        while (!pilha.empty() && a[pilha.top()] >= a[i]) pilha.pop();
+        if (!pilha.empty()) anterior[i] = pilha.top();
+        pilha.push(i);
+    }
+    return anterior;
+}
