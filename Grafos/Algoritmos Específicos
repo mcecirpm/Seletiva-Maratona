@@ -1,0 +1,93 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+// O(V + E). Aceita várias origens. Inalcançável recebe -1.
+//fazer uma multisorce
+vector<int> bfs(vector<vector<int>>& adj, vector<int>& origens) {
+    vector<int> dist(adj.size(), -1);
+    queue<int> fila;
+    for (int s : origens) {
+        if (dist[s] != -1) continue;
+        dist[s] = 0;
+        fila.push(s);
+    }
+    while (!fila.empty()) {
+        int u = fila.front();
+        fila.pop();
+        for (int v : adj[u]) {
+            if (dist[v] != -1) continue;
+            dist[v] = dist[u] + 1;
+            fila.push(v);
+        }
+    }
+    return dist;
+}
+
+// O(V + E). Grafo não dirigido. Rótulos de componente começam em zero.
+//interativo, dá para fazer recursivo
+vector<int> componentes(const vector<vector<int>>& adj) {
+    int n = (int)adj.size(), id = 0;
+    vector<int> comp(n, -1); //rotula de qual componente cada cara é;
+    for (int s = 0; s < n; s++) {
+        if (comp[s] != -1) continue;
+        stack<int> pilha;
+        pilha.push(s);
+        comp[s] = id;
+        while (!pilha.empty()) {
+            int u = pilha.top();
+            pilha.pop();
+            for (int v : adj[u]) {
+                if (comp[v] != -1) continue;
+                comp[v] = id;
+                pilha.push(v);
+            }
+        }
+        id++;
+    }
+    return comp;
+}
+
+// O(V + E). Grafo não dirigido. Retorna false se não der para bicolorir.
+bool bicolorir(vector<vector<int>>& adj, vector<int>& cor) {
+    int n = (int)adj.size();
+    queue<int> fila;
+    for (int s = 0; s < n; s++) {
+        if (cor[s] != -1) continue;
+        cor[s] = 0;
+        fila.push(s);
+        while (!fila.empty()) {
+            int u = fila.front();
+            fila.pop();
+            for (int v : adj[u]) {
+                if (cor[v] == cor[u]) return false;
+                if (cor[v] != -1) continue;
+                cor[v] = 1 - cor[u];
+                fila.push(v);
+            }
+        }
+    }
+    return true;
+}
+
+// O(V + E). Grafo dirigido. Retorna false se houver ciclo.
+bool top_sort(const vector<vector<int>>& adj, vector<int>& ordem) {
+    int n = (int)adj.size();
+    vector<int> grau(n, 0);
+    for (const auto& vizinhos : adj) {
+        for (int v : vizinhos) grau[v]++;
+    }
+    queue<int> fila;
+    for (int u = 0; u < n; u++) {
+        if (grau[u] == 0) fila.push(u);
+    }
+    ordem.clear();
+    while (!fila.empty()) {
+        int u = fila.front();
+        fila.pop();
+        ordem.push_back(u);
+        for (int v : adj[u]) {
+            if (--grau[v] == 0) fila.push(v);
+        }
+    }
+    return (int)ordem.size() == n;
+}
